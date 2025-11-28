@@ -4,6 +4,12 @@ import time
 from File_tracker.file_tracker import FileTracker
 import unittest
 
+LAST_CHANGES: tuple[str, str] = ('PATH_TO_FILE', 'ACTION_ON_FILE')
+
+def communicator(path: str, action:str):
+    global LAST_CHANGES
+    LAST_CHANGES = ()
+
 class TestFileTracker(unittest.TestCase):
 
     def setUp(self):
@@ -13,6 +19,7 @@ class TestFileTracker(unittest.TestCase):
 
         self.tracker: FileTracker = FileTracker(directory_path='./tests/', )
         self.tracker.start_monitoring()
+        self.tracker.add_handler(handler=communicator)
 
     def tearDown(self):
         os.remove(os.path.join('.', 'tests', self.test_file))
@@ -36,7 +43,7 @@ class TestFileTracker(unittest.TestCase):
         self.assertTrue(response.endswith(os.path.join('.','tests', file_test_name)), 'Uncorrected file path')
 
 
-    def test_remove_file(self):
+    def test_delete_file(self):
 
         os.remove(os.path.join('.', 'tests', self.test_file))
 
@@ -57,3 +64,6 @@ class TestFileTracker(unittest.TestCase):
         response:str = self.tracker.queue.get()
         self.assertIsNotNone(response, "Queue is empty" '')
         self.assertTrue(response.endswith(os.path.join('.', 'tests', self.test_file)), 'Uncorrected file path')
+
+    def test_rename_file(self):
+
