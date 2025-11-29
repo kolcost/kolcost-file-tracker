@@ -8,7 +8,7 @@ LAST_CHANGES: tuple[str, str] = ('PATH_TO_FILE', 'ACTION_ON_FILE')
 
 def communicator(path: str, action:str):
     global LAST_CHANGES
-    LAST_CHANGES = ()
+    LAST_CHANGES = (path, action)
 
 class TestFileTracker(unittest.TestCase):
 
@@ -24,34 +24,33 @@ class TestFileTracker(unittest.TestCase):
     def tearDown(self):
         os.remove(os.path.join('.', 'tests', self.test_file))
         self.tracker.stop_monitoring()
+        self.tracker.remove_handler(handler=communicator)
 
 
-    def test_add_file(self):
 
-        file_test_name = "new_test_file"
 
+    def test_file_creation(self):
+        file_test_name = "new_test_file.txt"
         with open(os.path.join('.', 'tests', file_test_name)):
             pass
-
         time.sleep(0.5)
 
-        response:str = self.tracker.queue.get()
+        self.assertTrue(LAST_CHANGES[0].endswith(file_test_name), msg=f'(File creation):  Wrong file \n {LAST_CHANGES}')
+        self.assertTrue(LAST_CHANGES[1] == 'creation', msg=f'(File creation):  Wrong action \n {LAST_CHANGES}')
 
         os.remove(os.path.join('.', 'tests', file_test_name))
 
-        self.assertIsNotNone(response, "Queue is empty" '')
-        self.assertTrue(response.endswith(os.path.join('.','tests', file_test_name)), 'Uncorrected file path')
 
 
-    def test_delete_file(self):
+    def test_file_delete(self):
 
         os.remove(os.path.join('.', 'tests', self.test_file))
 
         time.sleep(0.5)
 
-        response:str = self.tracker.queue.get()
-        self.assertIsNotNone(response, "Queue is empty" '')
-        self.assertTrue(response.endswith(os.path.join('.', 'tests', self.test_file)), 'Uncorrected file path')
+        self.assertTrue(LAST_CHANGES[0].endswith(self.test_file), msg=f'(File delete):  Wrong file \n {LAST_CHANGES}')
+        self.assertTrue(LAST_CHANGES[1] == 'creation', msg=f'(File delete):  Wrong action \n {LAST_CHANGES}')
+
 
 
     def test_edit_file(self):
@@ -61,9 +60,7 @@ class TestFileTracker(unittest.TestCase):
 
         time.sleep(0.5)
 
-        response:str = self.tracker.queue.get()
-        self.assertIsNotNone(response, "Queue is empty" '')
-        self.assertTrue(response.endswith(os.path.join('.', 'tests', self.test_file)), 'Uncorrected file path')
+        self.assertTrue(LAST_CHANGES[0].endswith(self.test_file), msg=f'(File edit):  Wrong file \n {LAST_CHANGES}')
+        self.assertTrue(LAST_CHANGES[1] == 'creation', msg=f'(File edit):  Wrong action \n {LAST_CHANGES}')
 
-    def test_rename_file(self):
 
