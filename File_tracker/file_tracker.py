@@ -5,7 +5,6 @@ import time
 
 class FileTracker:
     is_monitoring = False
-    queue = queue.Queue()
     handlers = []
 
 
@@ -20,8 +19,7 @@ class FileTracker:
         last_files = self.files
         lastest_files_timestamp = self.latest_file_changes(last_files)
 
-        for file in last_files:
-            self.queue.put(file)
+
 
         while self.is_monitoring:
             time.sleep(self.period)
@@ -43,3 +41,6 @@ class FileTracker:
 
         return latest_changes
 
+    def sending_events_to_handlers(self, path: str, action:str) -> None:
+        for handler in self.handlers:
+            handler(path, action)
